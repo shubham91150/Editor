@@ -1,0 +1,2135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced QR Code Designer - Hindi Fixed</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- QR Code Generation Library -->
+    <script src="https://cdn.jsdelivr.net/npm/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js" 
+            onerror="loadQRLibraryFallback()"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+    
+    <script>
+        let qrLibraryLoaded = false;
+        
+        function loadQRLibraryFallback() {
+            const script = document.createElement('script');
+            script.src = 'https://unpkg.com/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js';
+            script.onload = () => {
+                qrLibraryLoaded = true;
+                updateLibraryStatus('✅ QR Libraries loaded successfully', 'success');
+            };
+            script.onerror = () => {
+                updateLibraryStatus('❌ Styling library failed - rounded patterns disabled', 'error');
+            };
+            document.head.appendChild(script);
+        }
+        
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                if (typeof QRCodeStyling !== 'undefined') {
+                    qrLibraryLoaded = true;
+                } else {
+                    loadQRLibraryFallback();
+                }
+            }, 100);
+        });
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            padding: 40px;
+        }
+
+        .controls-panel {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            border: 1px solid #e9ecef;
+        }
+
+        .control-group {
+            margin-bottom: 25px;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .control-group input,
+        .control-group select,
+        .control-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .control-group input:focus,
+        .control-group select:focus,
+        .control-group textarea:focus {
+            outline: none;
+            border-color: #4facfe;
+        }
+
+        .color-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .style-selector {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .style-option {
+            padding: 10px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .style-option.active {
+            border-color: #4facfe;
+            background: #f0f9ff;
+        }
+
+        .style-option:hover {
+            border-color: #4facfe;
+            transform: translateY(-2px);
+        }
+
+        .style-option.premium {
+            background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%);
+            color: #2d3436;
+            font-weight: bold;
+        }
+
+        .style-option.premium.active {
+            background: linear-gradient(135deg, #fdcb6e 0%, #e17055 100%);
+        }
+
+        .corner-styles {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .corner-option {
+            width: 40px;
+            height: 40px;
+            border: 2px solid #e9ecef;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .corner-option.active {
+            border-color: #4facfe;
+            background: #f0f9ff;
+        }
+
+        .preview-panel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .qr-preview {
+            width: 400px;
+            height: 400px;
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        #qrCanvas {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 10px;
+        }
+
+        .export-controls {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            width: 100%;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .btn.secondary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .logo-upload {
+            margin-bottom: 15px;
+        }
+
+        .logo-preview {
+            width: 60px;
+            height: 60px;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .logo-preview:hover {
+            border-color: #4facfe;
+        }
+
+        .logo-preview img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .debug-info {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 12px;
+            color: #666;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .status-indicator {
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .rounded-options {
+            display: none;
+            margin-top: 15px;
+            padding: 15px;
+            background: #fff3cd;
+            border-radius: 8px;
+            border: 1px solid #ffeaa7;
+        }
+
+        .rounded-options.show {
+            display: block;
+        }
+
+        .rounded-control {
+            margin-bottom: 15px;
+        }
+
+        .rounded-control label {
+            font-size: 14px;
+            color: #856404;
+        }
+
+        #dataAnalysis {
+            font-size: 14px;
+            color: #495057;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .unicode-indicator {
+            background: #e8f5e8;
+            color: #2d5a2d;
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin-top: 10px;
+            font-size: 13px;
+            border: 1px solid #c3e6cb;
+        }
+
+        .custom-gradient-controls {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+
+        .gradient-preview {
+            width: 100%;
+            height: 60px;
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+            margin-bottom: 15px;
+            background: linear-gradient(45deg, #000000, #ff0000);
+        }
+
+        .gradient-stops {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .color-stop label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .gradient-direction {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .gradient-direction input[type="range"] {
+            flex: 1;
+        }
+
+        .logo-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .logo-info {
+            background: #e8f5e8;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            color: #2d5a2d;
+            margin-top: 10px;
+        }
+
+        .logo-preview-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .logo-remove {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            display: none;
+        }
+
+        .logo-preview-container:hover .logo-remove {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+                padding: 20px;
+            }
+            
+            .qr-preview {
+                width: 300px;
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎨 Advanced QR Designer</h1>
+            <p>Custom patterns और professional QR codes बनाइए - Hindi Text Fixed! 🇮🇳</p>
+        </div>
+
+        <div class="main-content">
+            <div class="controls-panel">
+                <div id="libraryStatus" class="status-indicator status-info">
+                    🔄 Checking QR library status...
+                </div>
+
+                <div class="control-group">
+                    <label for="qrText">QR Code Content</label>
+                    <textarea id="qrText" placeholder="Enter text, URL, or data... Hindi text fully supported!" rows="3">https://example.com</textarea>
+                    <div id="unicodeInfo" class="unicode-indicator" style="display: none;">
+                        <div id="unicodeDetails"></div>
+                    </div>
+                    <div id="dataAnalysis" style="margin-top: 10px; padding: 10px; border-radius: 8px; display: none;">
+                        <div id="dataInfo" style="font-size: 14px; color: #495057; margin-bottom: 8px;"></div>
+                        <div id="patternRecommendation" style="font-size: 14px; font-weight: 600;"></div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>Dot Pattern Style</label>
+                    <div class="style-selector">
+                        <div class="style-option active" data-style="square">
+                            <div>⬛</div>
+                            <small>Square</small>
+                        </div>
+                        <div class="style-option" data-style="circle">
+                            <div>⚫</div>
+                            <small>Circle</small>
+                        </div>
+                        <div class="style-option premium" data-style="rounded">
+                            <div>🔥</div>
+                            <small>Rounded Pro</small>
+                        </div>
+                        <div class="style-option" data-style="diamond">
+                            <div>◆</div>
+                            <small>Diamond</small>
+                        </div>
+                        <div class="style-option" data-style="line">
+                            <div>▬</div>
+                            <small>Line</small>
+                        </div>
+                        <div class="style-option" data-style="mixed">
+                            <div>●○●</div>
+                            <small>Mixed</small>
+                        </div>
+                        <div class="style-option" data-style="pills">
+                            <div>💊</div>
+                            <small>Pills</small>
+                        </div>
+                        <div class="style-option" data-style="mixed-dots">
+                            <div>●○</div>
+                            <small>Mixed Dots</small>
+                        </div>
+                        <div class="style-option" data-style="square-dots">
+                            <div>▪▪</div>
+                            <small>Square Dots</small>
+                        </div>
+                    </div>
+
+                    <div id="roundedOptions" class="rounded-options">
+                        <h4 style="color: #856404; margin-bottom: 15px;">🔥 Professional Rounded Settings</h4>
+                        
+                        <div class="rounded-control">
+                            <label for="dotsType">Dots Style</label>
+                            <select id="dotsType">
+                                <option value="rounded">Rounded</option>
+                                <option value="dots">Dots</option>
+                                <option value="classy">Classy</option>
+                                <option value="classy-rounded">Classy Rounded</option>
+                                <option value="square">Square</option>
+                                <option value="extra-rounded">Extra Rounded</option>
+                            </select>
+                        </div>
+
+                        <div class="rounded-control">
+                            <label for="cornersType">Corner Style</label>
+                            <select id="cornersType">
+                                <option value="square">Square</option>
+                                <option value="extra-rounded">Extra Rounded</option>
+                                <option value="dot">Dot</option>
+                            </select>
+                        </div>
+
+                        <div class="rounded-control">
+                            <label for="cornersDotType">Corner Dot Style</label>
+                            <select id="cornersDotType">
+                                <option value="square">Square</option>
+                                <option value="dot">Dot</option>
+                                <option value="rounded">Rounded</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>Corner Style</label>
+                    <div class="corner-styles">
+                        <div class="corner-option active" data-corner="square">⬛</div>
+                        <div class="corner-option" data-corner="circle">⚫</div>
+                        <div class="corner-option" data-corner="rounded">▢</div>
+                        <div class="corner-option" data-corner="star">✦</div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>Colors</label>
+                    <div class="color-controls">
+                        <div>
+                            <label for="foregroundColor">Foreground</label>
+                            <input type="color" id="foregroundColor" value="#000000">
+                        </div>
+                        <div>
+                            <label for="backgroundColor">Background</label>
+                            <input type="color" id="backgroundColor" value="#ffffff">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label for="gradientType">Gradient Type</label>
+                    <select id="gradientType">
+                        <option value="none">No Gradient</option>
+                        <option value="linear">Linear Gradient</option>
+                        <option value="radial">Radial Gradient</option>
+                    </select>
+                    
+                    <div id="gradientControls" class="custom-gradient-controls" style="display: none;">
+                        <div class="gradient-preview" id="gradientPreview"></div>
+                        <div class="gradient-stops">
+                            <div class="color-stop">
+                                <label>Start Color</label>
+                                <input type="color" id="gradientColor1" value="#000000">
+                            </div>
+                            <div class="color-stop">
+                                <label>End Color</label>
+                                <input type="color" id="gradientColor2" value="#ff0000">
+                            </div>
+                        </div>
+                        <div class="gradient-direction">
+                            <label for="gradientAngle">Direction (degrees)</label>
+                            <input type="range" id="gradientAngle" min="0" max="360" value="45">
+                            <span id="angleValue">45°</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label for="qrSize">QR Size (px)</label>
+                    <input type="range" id="qrSize" min="200" max="800" value="400">
+                    <span id="sizeValue">400px</span>
+                </div>
+
+                <div class="control-group">
+                    <label for="errorLevel">Error Correction</label>
+                    <select id="errorLevel">
+                        <option value="L">Low (7%)</option>
+                        <option value="M" selected>Medium (15%)</option>
+                        <option value="Q">Quartile (25%)</option>
+                        <option value="H">High (30%)</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label>Logo/Image</label>
+                    <div class="logo-upload">
+                        <input type="file" id="logoInput" accept="image/*" style="display: none;">
+                        <div class="logo-preview-container">
+                            <div class="logo-preview" onclick="document.getElementById('logoInput').click()">
+                                <span id="logoText">+ Add Logo</span>
+                                <img id="logoImage" style="display: none;">
+                            </div>
+                            <button class="logo-remove" onclick="removeLogo()" title="Remove Logo">×</button>
+                        </div>
+                    </div>
+                    <div id="logoInfo" class="logo-info" style="display: none;">
+                        <div id="logoDetails"></div>
+                    </div>
+                    <div class="logo-controls" id="logoControls" style="display: none;">
+                        <div>
+                            <label for="logoSize">Logo Size (%)</label>
+                            <input type="range" id="logoSize" min="5" max="30" value="15">
+                            <span id="logoSizeValue">15%</span>
+                        </div>
+                        <div>
+                            <label for="logoQuality">Render Quality</label>
+                            <select id="logoQuality">
+                                <option value="standard">Standard</option>
+                                <option value="high">High Quality</option>
+                                <option value="ultra">Ultra (4K)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label for="customText">Custom Text/Branding</label>
+                    <input type="text" id="customText" placeholder="Your brand name...">
+                </div>
+            </div>
+
+            <div class="preview-panel">
+                <div class="qr-preview">
+                    <canvas id="qrCanvas"></canvas>
+                </div>
+                
+                <div class="export-controls">
+                    <button class="btn" onclick="generateQR()">🔄 Generate QR</button>
+                    <button class="btn secondary" onclick="downloadQR()">💾 Download PNG</button>
+                    <button class="btn" onclick="testHindiEncoding()">🇮🇳 Test Hindi</button>
+                    <button class="btn secondary" onclick="debugMode()">🐛 Debug Mode</button>
+                </div>
+
+                <div class="debug-info" id="debugInfo">
+                    <strong>Debug Console:</strong><br>
+                    <div id="debugMessages">System starting up...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function debugLog(message, type = 'info') {
+            const debugMessages = document.getElementById('debugMessages');
+            if (!debugMessages) return;
+            
+            const timestamp = new Date().toLocaleTimeString();
+            const colors = {
+                'info': '#0c5460',
+                'success': '#155724', 
+                'error': '#721c24',
+                'warning': '#856404'
+            };
+            
+            if (debugMessages.children.length > 50) {
+                debugMessages.removeChild(debugMessages.firstChild);
+            }
+            
+            const msgDiv = document.createElement('div');
+            msgDiv.style.color = colors[type];
+            msgDiv.style.margin = '2px 0';
+            msgDiv.textContent = `[${timestamp}] ${message}`;
+            debugMessages.appendChild(msgDiv);
+            
+            debugMessages.scrollTop = debugMessages.scrollHeight;
+            console.log(`[QR Debug] ${message}`);
+        }
+
+        function checkLibraryStatus() {
+            debugLog('Checking QR libraries...', 'info');
+            
+            let basicLibraryLoaded = typeof qrcode !== 'undefined';
+            let stylingLibraryLoaded = typeof QRCodeStyling !== 'undefined';
+            
+            if (!basicLibraryLoaded) {
+                debugLog('ERROR: Basic qrcode library not found!', 'error');
+                updateLibraryStatus('❌ Basic QR Library not loaded', 'error');
+                return false;
+            }
+            
+            if (!stylingLibraryLoaded) {
+                debugLog('WARNING: QR-Code-Styling library not found!', 'warning');
+                updateLibraryStatus('⚠️ Loading styling library...', 'info');
+            } else {
+                debugLog('QR-Code-Styling library found!', 'success');
+            }
+            
+            try {
+                const testQR = qrcode(0, 'M');
+                testQR.addData('test', 'Byte');
+                testQR.make();
+                
+                const moduleCount = testQR.getModuleCount();
+                debugLog(`Test QR generated: ${moduleCount}x${moduleCount} modules`, 'success');
+                
+                updateLibraryStatus('✅ QR Libraries loaded and working', 'success');
+                return true;
+                
+            } catch (error) {
+                debugLog('ERROR testing libraries: ' + error.message, 'error');
+                updateLibraryStatus('⚠️ QR Libraries loaded but have issues', 'error');
+                return false;
+            }
+        }
+
+        function updateLibraryStatus(message, type) {
+            const statusDiv = document.getElementById('libraryStatus');
+            statusDiv.textContent = message;
+            statusDiv.className = `status-indicator status-${type}`;
+        }
+
+        // Advanced Unicode-aware QR Renderer
+        class UnicodeQRRenderer {
+            constructor(canvas) {
+                this.canvas = canvas;
+                this.ctx = canvas.getContext('2d');
+                this.settings = {
+                    dotStyle: 'square',
+                    cornerStyle: 'square',
+                    foregroundColor: '#000000',
+                    backgroundColor: '#ffffff',
+                    gradientType: 'none',
+                    size: 400,
+                    errorLevel: 'M',
+                    logo: null,
+                    logoSize: 15,
+                    customText: '',
+                    dotsType: 'rounded',
+                    cornersType: 'square',
+                    cornersDotType: 'square'
+                };
+                this.qrMatrix = null;
+                this.moduleCount = 0;
+                this.isLibraryWorking = false;
+                this.dataComplexity = null;
+            }
+
+            initialize() {
+                debugLog('Initializing Unicode QR Renderer...', 'info');
+                this.isLibraryWorking = checkLibraryStatus();
+                return this.isLibraryWorking;
+            }
+
+            // Proper Unicode text encoding for QR codes
+            encodeForQR(text) {
+                try {
+                    // Convert text to UTF-8 bytes using TextEncoder
+                    const encoder = new TextEncoder();
+                    const utf8Bytes = encoder.encode(text);
+                    
+                    // Convert UTF-8 bytes to Latin-1 string for QR library
+                    let encodedString = '';
+                    for (let i = 0; i < utf8Bytes.length; i++) {
+                        encodedString += String.fromCharCode(utf8Bytes[i]);
+                    }
+                    
+                    debugLog(`Unicode encoding: ${text.length} chars → ${utf8Bytes.length} bytes`, 'info');
+                    
+                    // Verify the encoding works by decoding back
+                    const testDecoder = new TextDecoder();
+                    const decodedBytes = new Uint8Array(encodedString.length);
+                    for (let i = 0; i < encodedString.length; i++) {
+                        decodedBytes[i] = encodedString.charCodeAt(i);
+                    }
+                    const decodedText = testDecoder.decode(decodedBytes);
+                    
+                    if (decodedText === text) {
+                        debugLog('Unicode encoding verification successful!', 'success');
+                    } else {
+                        debugLog('Unicode encoding verification failed!', 'error');
+                    }
+                    
+                    return encodedString;
+                } catch (error) {
+                    debugLog('Unicode encoding failed: ' + error.message, 'error');
+                    return text; // Fallback to original text
+                }
+            }
+
+            analyzeData(text) {
+                const dataLength = text.length;
+                const hasSpecialChars = /[^A-Za-z0-9\s]/.test(text);
+                const hasUnicode = /[^\x00-\x7F]/.test(text);
+                const hasHindi = /[\u0900-\u097F]/.test(text);
+                const hasArabic = /[\u0600-\u06FF]/.test(text);
+                const hasEmoji = /[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]/u.test(text);
+                const isURL = /^https?:\/\//i.test(text);
+                
+                // Calculate actual byte size for Unicode text
+                const encoder = new TextEncoder();
+                const actualByteSize = encoder.encode(text).length;
+                
+                let complexity = 'low';
+                let estimatedModules = 21;
+                
+                // Realistic thresholds based on testing - most patterns work up to 450 chars
+                if (dataLength < 150) {
+                    complexity = 'low';
+                    estimatedModules = 21;
+                } else if (dataLength < 300) {
+                    complexity = 'medium';
+                    estimatedModules = 33;
+                } else if (dataLength < 450) {
+                    complexity = 'high';
+                    estimatedModules = 45;
+                } else {
+                    complexity = 'very-high';
+                    estimatedModules = 57 + Math.floor((dataLength - 450) / 100) * 4;
+                }
+                
+                // For Unicode, only adjust if text is very long
+                if (hasUnicode && dataLength > 400) {
+                    estimatedModules = Math.min(177, estimatedModules * 1.2);
+                }
+                
+                return {
+                    length: dataLength,
+                    byteSize: actualByteSize,
+                    complexity: complexity,
+                    hasSpecialChars: hasSpecialChars,
+                    hasUnicode: hasUnicode,
+                    hasHindi: hasHindi,
+                    hasArabic: hasArabic,
+                    hasEmoji: hasEmoji,
+                    isURL: isURL,
+                    estimatedModules: Math.min(177, estimatedModules),
+                    recommendedPatterns: this.getRecommendedPatterns(complexity, dataLength, hasUnicode),
+                    warningLevel: this.getWarningLevel(dataLength, estimatedModules, hasUnicode),
+                    encoding: hasUnicode ? 'UTF-8' : 'ASCII'
+                };
+            }
+
+            getRecommendedPatterns(complexity, dataLength, hasUnicode) {
+                // Pills pattern has issues after ~350 characters
+                const pillsThreshold = 350;
+                
+                const patterns = {
+                    'low': {
+                        best: ['circle', 'rounded', 'diamond', 'mixed-dots', 'pills'],
+                        good: ['square-dots', 'mixed', 'square'],
+                        acceptable: ['line']
+                    },
+                    'medium': {
+                        best: ['square', 'circle', 'rounded', 'diamond'],
+                        good: dataLength < pillsThreshold ? ['pills', 'square-dots', 'mixed-dots'] : ['square-dots', 'mixed-dots'],
+                        acceptable: ['line', 'mixed']
+                    },
+                    'high': {
+                        best: ['square', 'circle'],
+                        good: ['rounded', 'square-dots'],
+                        acceptable: dataLength < pillsThreshold ? ['pills'] : []
+                    },
+                    'very-high': {
+                        best: ['square'],
+                        good: ['circle'],
+                        acceptable: ['rounded']
+                    }
+                };
+                
+                return patterns[complexity] || patterns['very-high'];
+            }
+
+            getWarningLevel(dataLength, estimatedModules, hasUnicode) {
+                // Realistic thresholds based on testing - most patterns work well up to 450 chars
+                if (dataLength > 600 || estimatedModules > 120) {
+                    return 'critical';
+                } else if (dataLength > 450 || estimatedModules > 80) {
+                    return 'warning';
+                } else if (dataLength > 300 || estimatedModules > 60) {
+                    return 'info';
+                }
+                return 'ok';
+            }
+
+            showDataAnalysis(analysis) {
+                const dataAnalysisDiv = document.getElementById('dataAnalysis');
+                const dataInfoDiv = document.getElementById('dataInfo');
+                const recommendationDiv = document.getElementById('patternRecommendation');
+                const unicodeInfoDiv = document.getElementById('unicodeInfo');
+                const unicodeDetailsDiv = document.getElementById('unicodeDetails');
+                
+                dataAnalysisDiv.style.display = 'block';
+                
+                // Show Unicode information
+                if (analysis.hasUnicode) {
+                    unicodeInfoDiv.style.display = 'block';
+                    let unicodeText = `📝 Encoding: ${analysis.encoding} | Size: ${analysis.byteSize} bytes`;
+                    
+                    if (analysis.hasHindi) {
+                        unicodeText += ' | 🇮🇳 Hindi Detected';
+                        unicodeInfoDiv.className = 'unicode-indicator hindi';
+                    } else if (analysis.hasArabic) {
+                        unicodeText += ' | 🇸🇦 Arabic Detected';
+                        unicodeInfoDiv.className = 'unicode-indicator hindi';
+                    } else if (analysis.hasEmoji) {
+                        unicodeText += ' | 😊 Emoji Detected';
+                        unicodeInfoDiv.className = 'unicode-indicator';
+                    } else {
+                        unicodeText += ' | 🌍 Unicode Text';
+                        unicodeInfoDiv.className = 'unicode-indicator';
+                    }
+                    
+                    unicodeDetailsDiv.innerHTML = unicodeText;
+                } else {
+                    unicodeInfoDiv.style.display = 'none';
+                }
+                
+                // Data info
+                let infoHTML = `📊 Data: ${analysis.length} characters`;
+                if (analysis.isURL) infoHTML += ' (URL)';
+                infoHTML += ` | Complexity: ${analysis.complexity.toUpperCase()}`;
+                dataInfoDiv.innerHTML = infoHTML;
+                
+                // Auto-adjust settings for Unicode text
+                if (analysis.hasUnicode && ['L'].includes(this.settings.errorLevel)) {
+                    this.settings.errorLevel = 'M';
+                    document.getElementById('errorLevel').value = 'M';
+                    debugLog('Auto-upgraded error correction for Unicode text', 'info');
+                }
+                
+                // Pattern recommendations
+                let recommendationHTML = '';
+                const currentPattern = this.settings.dotStyle;
+                
+                if (analysis.warningLevel === 'critical') {
+                    dataAnalysisDiv.style.background = '#f8d7da';
+                    dataAnalysisDiv.style.border = '1px solid #f5c6cb';
+                    recommendationHTML = '⚠️ <strong>Critical:</strong> Data too large! Use SQUARE pattern and HIGH error correction.';
+                    
+                    if (analysis.hasUnicode) {
+                        recommendationHTML += '<br>🌍 <strong>Unicode Text:</strong> Consider splitting into smaller QR codes.';
+                    }
+                    
+                    // Auto-switch for critical data
+                    if (!['square', 'circle'].includes(currentPattern)) {
+                        this.settings.dotStyle = 'square';
+                        this.settings.errorLevel = 'H';
+                        recommendationHTML += '<br>🔄 Auto-switched to SQUARE pattern for stability.';
+                        
+                        document.querySelectorAll('.style-option').forEach(o => o.classList.remove('active'));
+                        document.querySelector('[data-style="square"]').classList.add('active');
+                        document.getElementById('errorLevel').value = 'H';
+                    }
+                } else if (analysis.warningLevel === 'warning') {
+                    dataAnalysisDiv.style.background = '#fff3cd';
+                    dataAnalysisDiv.style.border = '1px solid #ffeaa7';
+                    recommendationHTML = '⚠️ <strong>Warning:</strong> Large data detected. Recommended: ' + 
+                        analysis.recommendedPatterns.best.map(p => p.toUpperCase()).join(', ');
+                    
+                    if (analysis.hasUnicode) {
+                        recommendationHTML += '<br>🌍 <strong>Unicode Text:</strong> Use MEDIUM or HIGH error correction for better scanning.';
+                    }
+                } else if (analysis.warningLevel === 'info') {
+                    dataAnalysisDiv.style.background = '#d1ecf1';
+                    dataAnalysisDiv.style.border = '1px solid #bee5eb';
+                    recommendationHTML = '💡 <strong>Tip:</strong> For best scanning, use: ' + 
+                        analysis.recommendedPatterns.best.map(p => p.toUpperCase()).join(', ');
+                    
+                    if (analysis.hasUnicode) {
+                        recommendationHTML += '<br>🌍 <strong>Unicode Text:</strong> Simple patterns work better.';
+                    }
+                } else {
+                    dataAnalysisDiv.style.background = '#d4edda';
+                    dataAnalysisDiv.style.border = '1px solid #c3e6cb';
+                    recommendationHTML = '✅ <strong>Great!</strong> ';
+                    
+                    if (analysis.hasUnicode) {
+                        recommendationHTML += 'Unicode text is optimized. All patterns should work well!';
+                    } else {
+                        recommendationHTML += 'All patterns will work well. Try creative ones like ROUNDED or PILLS!';
+                    }
+                }
+                
+                recommendationDiv.innerHTML = recommendationHTML;
+                this.dataComplexity = analysis;
+            }
+
+            generateMatrix(text, errorLevel) {
+                if (!this.isLibraryWorking) {
+                    debugLog('Cannot generate matrix: library not working', 'error');
+                    return null;
+                }
+
+                try {
+                    debugLog(`Generating QR for: "${text.substring(0, 50)}${text.length > 50 ? '...' : ''}"`, 'info');
+                    
+                    // Properly encode Unicode text
+                    const encodedText = this.encodeForQR(text);
+                    debugLog(`Encoded text length: ${encodedText.length} bytes`, 'info');
+                    
+                    let qr;
+                    let attemptedLevels = [errorLevel];
+                    
+                    try {
+                        qr = qrcode(0, errorLevel);
+                        qr.addData(encodedText, 'Byte'); // Force Byte mode for Unicode
+                        qr.make();
+                    } catch (error) {
+                        debugLog(`Failed with error level ${errorLevel}, trying fallbacks...`, 'warning');
+                        
+                        // Try different error levels
+                        const fallbackLevels = ['L', 'M', 'Q', 'H'].filter(l => l !== errorLevel);
+                        
+                        for (const level of fallbackLevels) {
+                            try {
+                                qr = qrcode(0, level);
+                                qr.addData(encodedText, 'Byte');
+                                qr.make();
+                                attemptedLevels.push(level);
+                                debugLog(`Success with error level ${level}`, 'success');
+                                
+                                this.settings.errorLevel = level;
+                                document.getElementById('errorLevel').value = level;
+                                break;
+                            } catch (e) {
+                                attemptedLevels.push(level);
+                                debugLog(`Failed with error level ${level}`, 'warning');
+                            }
+                        }
+                        
+                        if (!qr) {
+                            throw new Error(`Data too large for QR encoding. Tried levels: ${attemptedLevels.join(', ')}`);
+                        }
+                    }
+                    
+                    this.moduleCount = qr.getModuleCount();
+                    debugLog(`QR matrix size: ${this.moduleCount}x${this.moduleCount}`, 'success');
+                    
+                    const matrix = [];
+                    let darkModules = 0;
+                    
+                    for(let row = 0; row < this.moduleCount; row++) {
+                        matrix[row] = [];
+                        for(let col = 0; col < this.moduleCount; col++) {
+                            try {
+                                const isDark = qr.isDark(row, col);
+                                matrix[row][col] = isDark;
+                                if (isDark) darkModules++;
+                            } catch(e) {
+                                debugLog(`Error reading module at (${row}, ${col}): ${e.message}`, 'warning');
+                                matrix[row][col] = false;
+                            }
+                        }
+                    }
+                    
+                    debugLog(`Matrix generated: ${darkModules} dark modules out of ${this.moduleCount * this.moduleCount}`, 'success');
+                    
+                    this.qrMatrix = matrix;
+                    return matrix;
+                    
+                } catch(error) {
+                    debugLog('Matrix generation failed: ' + error.message, 'error');
+                    
+                    const dataAnalysisDiv = document.getElementById('dataAnalysis');
+                    const recommendationDiv = document.getElementById('patternRecommendation');
+                    
+                    dataAnalysisDiv.style.display = 'block';
+                    dataAnalysisDiv.style.background = '#f8d7da';
+                    dataAnalysisDiv.style.border = '1px solid #f5c6cb';
+                    recommendationDiv.innerHTML = '❌ <strong>Error:</strong> Data is too large to encode! Please reduce data size or split into multiple QR codes.';
+                    
+                    return null;
+                }
+            }
+
+            async renderRoundedPattern(text) {
+                if (typeof QRCodeStyling === 'undefined') {
+                    debugLog('QR-Code-Styling library not available', 'error');
+                    return this.renderBasicPattern(text);
+                }
+
+                try {
+                    debugLog('Using QR-Code-Styling library for rounded pattern...', 'info');
+                    
+                    // Properly encode Unicode text for QR-Code-Styling
+                    const encodedText = this.encodeForQR(text);
+                    
+                    this.canvas.width = this.settings.size;
+                    this.canvas.height = this.settings.size;
+                    this.ctx.clearRect(0, 0, this.settings.size, this.settings.size);
+
+                    const qrConfig = {
+                        width: this.settings.size,
+                        height: this.settings.size,
+                        type: "canvas",
+                        data: encodedText,
+                        image: this.settings.logo ? this.getImageDataURL() : undefined,
+                        margin: 10,
+                        qrOptions: {
+                            typeNumber: 0,
+                            mode: "Byte",
+                            errorCorrectionLevel: this.settings.errorLevel
+                        },
+                        imageOptions: {
+                            hideBackgroundDots: true,
+                            imageSize: this.settings.logoSize / 100,
+                            margin: 5,
+                            crossOrigin: "anonymous"
+                        },
+                        dotsOptions: {
+                            color: this.settings.foregroundColor,
+                            type: this.settings.dotsType
+                        },
+                        cornersSquareOptions: {
+                            color: this.settings.foregroundColor,
+                            type: this.settings.cornersType
+                        },
+                        cornersDotOptions: {
+                            color: this.settings.foregroundColor,
+                            type: this.settings.cornersDotType
+                        },
+                        backgroundOptions: {
+                            color: this.settings.backgroundColor
+                        }
+                    };
+
+                    if (this.settings.gradientType !== 'none') {
+                        qrConfig.dotsOptions.gradient = this.getStylingGradient();
+                        qrConfig.cornersSquareOptions.gradient = this.getStylingGradient();
+                    }
+
+                    const qrCodeStyling = new QRCodeStyling(qrConfig);
+
+                    await new Promise((resolve, reject) => {
+                        try {
+                            const tempDiv = document.createElement('div');
+                            tempDiv.style.position = 'absolute';
+                            tempDiv.style.left = '-9999px';
+                            document.body.appendChild(tempDiv);
+                            
+                            qrCodeStyling.append(tempDiv);
+                            
+                            setTimeout(() => {
+                                const tempCanvas = tempDiv.querySelector('canvas');
+                                if (tempCanvas) {
+                                    this.ctx.drawImage(tempCanvas, 0, 0, this.settings.size, this.settings.size);
+                                    this.renderCustomText(this.settings.customText);
+                                    debugLog('Rounded QR pattern generated successfully!', 'success');
+                                } else {
+                                    debugLog('Failed to get canvas from QR-Code-Styling', 'error');
+                                }
+                                
+                                document.body.removeChild(tempDiv);
+                                resolve();
+                            }, 100);
+                            
+                        } catch (error) {
+                            debugLog('QR-Code-Styling rendering error: ' + error.message, 'error');
+                            reject(error);
+                        }
+                    });
+
+                    return true;
+
+                } catch (error) {
+                    debugLog('Rounded pattern generation failed: ' + error.message, 'error');
+                    return this.renderBasicPattern(text);
+                }
+            }
+
+            getStylingGradient() {
+                switch(this.settings.gradientType) {
+                    case 'linear':
+                        return {
+                            type: 'linear',
+                            rotation: 0,
+                            colorStops: [
+                                { offset: 0, color: this.settings.foregroundColor },
+                                { offset: 1, color: '#4ECDC4' }
+                            ]
+                        };
+                    case 'radial':
+                        return {
+                            type: 'radial',
+                            colorStops: [
+                                { offset: 0, color: this.settings.foregroundColor },
+                                { offset: 1, color: '#FF6B6B' }
+                            ]
+                        };
+                    case 'custom':
+                        if (this.settings.customGradient) {
+                            return {
+                                type: 'linear',
+                                rotation: this.settings.customGradient.angle,
+                                colorStops: [
+                                    { offset: 0, color: this.settings.customGradient.color1 },
+                                    { offset: 1, color: this.settings.customGradient.color2 }
+                                ]
+                            };
+                        }
+                        return null;
+                    default:
+                        return null;
+                }
+            }
+
+            renderCustomText(text) {
+                if(!text) return;
+                
+                try {
+                    const size = this.settings.size;
+                    const fontSize = Math.max(12, size/25);
+                    this.ctx.font = `bold ${fontSize}px Arial`;
+                    this.ctx.fillStyle = this.settings.foregroundColor;
+                    this.ctx.textAlign = 'center';
+                    this.ctx.textBaseline = 'bottom';
+                    
+                    this.ctx.fillText(text, size/2, size - fontSize/2);
+                    debugLog('Custom text rendered: ' + text, 'success');
+                    
+                } catch(error) {
+                    debugLog('Text rendering error: ' + error.message, 'warning');
+                }
+            }
+
+            embedLogo(logo, logoSize) {
+                if(!logo) return;
+                
+                try {
+                    const size = this.settings.size;
+                    const quality = this.settings.logoQuality || 'standard';
+                    
+                    // Adjust logo size based on quality setting
+                    let actualLogoSize = logoSize;
+                    if (quality === 'high') {
+                        actualLogoSize = Math.min(logoSize * 1.2, 25);
+                    } else if (quality === 'ultra') {
+                        actualLogoSize = Math.min(logoSize * 1.5, 30);
+                    }
+                    
+                    const logoPixelSize = (size * actualLogoSize) / 100;
+                    const logoX = (size - logoPixelSize) / 2;
+                    const logoY = (size - logoPixelSize) / 2;
+                    
+                    // Create white background circle
+                    this.ctx.fillStyle = this.settings.backgroundColor;
+                    this.ctx.beginPath();
+                    this.ctx.arc(logoX + logoPixelSize/2, logoY + logoPixelSize/2, logoPixelSize/2 + 6, 0, 2 * Math.PI);
+                    this.ctx.fill();
+                    
+                    // For high quality, use better interpolation
+                    if (quality === 'high' || quality === 'ultra') {
+                        this.ctx.imageSmoothingEnabled = true;
+                        this.ctx.imageSmoothingQuality = 'high';
+                    }
+                    
+                    // Clip to circle and draw logo
+                    this.ctx.save();
+                    this.ctx.beginPath();
+                    this.ctx.arc(logoX + logoPixelSize/2, logoY + logoPixelSize/2, logoPixelSize/2, 0, 2 * Math.PI);
+                    this.ctx.clip();
+                    
+                    this.ctx.drawImage(logo, logoX, logoY, logoPixelSize, logoPixelSize);
+                    this.ctx.restore();
+                    
+                    // Reset smoothing
+                    this.ctx.imageSmoothingEnabled = true;
+                    this.ctx.imageSmoothingQuality = 'medium';
+                    
+                    debugLog(`Logo embedded successfully with ${quality} quality`, 'success');
+                    
+                } catch(error) {
+                    debugLog('Logo embedding error: ' + error.message, 'warning');
+                }
+            }
+
+            getImageDataURL() {
+                if (!this.settings.logo) return null;
+                
+                try {
+                    const tempCanvas = document.createElement('canvas');
+                    const tempCtx = tempCanvas.getContext('2d');
+                    tempCanvas.width = this.settings.logo.width;
+                    tempCanvas.height = this.settings.logo.height;
+                    tempCtx.drawImage(this.settings.logo, 0, 0);
+                    return tempCanvas.toDataURL();
+                } catch (error) {
+                    debugLog('Logo conversion failed: ' + error.message, 'warning');
+                    return null;
+                }
+            }
+
+            renderBasicPattern(text) {
+                const matrix = this.generateMatrix(text, this.settings.errorLevel);
+                if(!matrix) {
+                    debugLog('Basic render failed: could not generate matrix', 'error');
+                    return false;
+                }
+                
+                try {
+                    const size = this.settings.size;
+                    const moduleSize = size / this.moduleCount;
+                    
+                    this.canvas.width = size;
+                    this.canvas.height = size;
+                    
+                    this.ctx.fillStyle = this.settings.backgroundColor;
+                    this.ctx.fillRect(0, 0, size, size);
+                    
+                    if (moduleSize < 5) {
+                        this.ctx.imageSmoothingEnabled = false;
+                    } else {
+                        this.ctx.imageSmoothingEnabled = true;
+                    }
+                    
+                    // Check if pills pattern should be used
+                    if (this.settings.dotStyle === 'pills' && this.moduleCount <= 80) {
+                        this.renderPillsPattern(matrix, moduleSize, size);
+                        this.renderCornerSquares(matrix, moduleSize);
+                        
+                        if(this.settings.logo) {
+                            this.embedLogo(this.settings.logo, this.settings.logoSize);
+                        }
+                        
+                        this.renderCustomText(this.settings.customText);
+                        debugLog('Pills pattern completed successfully!', 'success');
+                        return true;
+                    }
+                    
+                    let renderedModules = 0;
+                    
+                    for(let row = 0; row < this.moduleCount; row++) {
+                        for(let col = 0; col < this.moduleCount; col++) {
+                            if(matrix[row][col]) {
+                                const x = col * moduleSize;
+                                const y = row * moduleSize;
+                                const cornerType = this.isCornerSquare(row, col, this.moduleCount);
+                                
+                                let color = this.settings.foregroundColor;
+                                
+                                if(this.settings.gradientType !== 'none' && !cornerType && this.moduleCount <= 80) {
+                                    color = this.getGradientColor(row, col, this.moduleCount, this.settings.foregroundColor);
+                                }
+                                
+                                if(cornerType) {
+                                    if((cornerType === 'top-left' && row === 0 && col === 0) ||
+                                       (cornerType === 'top-right' && row === 0 && col === this.moduleCount - 7) ||
+                                       (cornerType === 'bottom-left' && row === this.moduleCount - 7 && col === 0)) {
+                                        this.renderCorner(x, y, moduleSize * 7, this.settings.cornerStyle, this.settings.foregroundColor);
+                                    }
+                                } else {
+                                    this.renderDot(x, y, moduleSize, this.settings.dotStyle, color, row, col);
+                                    renderedModules++;
+                                }
+                            }
+                        }
+                    }
+                    
+                    debugLog(`Rendered ${renderedModules} data modules successfully`, 'success');
+                    
+                    if(this.settings.logo && (this.moduleCount <= 60 || this.settings.errorLevel === 'H')) {
+                        this.embedLogo(this.settings.logo, this.settings.logoSize);
+                    }
+                    
+                    this.renderCustomText(this.settings.customText);
+                    
+                    debugLog('Basic QR pattern completed successfully!', 'success');
+                    return true;
+                    
+                } catch(error) {
+                    debugLog('Basic render process failed: ' + error.message, 'error');
+                    return false;
+                }
+            }
+
+            isCornerSquare(row, col, size) {
+                const cornerSize = 7;
+                
+                if(row < cornerSize && col < cornerSize) return 'top-left';
+                if(row < cornerSize && col >= size - cornerSize) return 'top-right';
+                if(row >= size - cornerSize && col < cornerSize) return 'bottom-left';
+                
+                return false;
+            }
+
+            getGradientColor(row, col, size, baseColor) {
+                const { gradientType } = this.settings;
+                
+                if(gradientType === 'none') return baseColor;
+                
+                try {
+                    const normalizedRow = row / size;
+                    const normalizedCol = col / size;
+                    
+                    if(gradientType === 'linear') {
+                        const color1 = this.settings.gradientColor1 || baseColor;
+                        const color2 = this.settings.gradientColor2 || '#4ECDC4';
+                        const angle = (this.settings.gradientAngle || 45) * Math.PI / 180;
+                        
+                        // Calculate position along gradient line
+                        const x = normalizedCol * Math.cos(angle) + normalizedRow * Math.sin(angle);
+                        const ratio = Math.max(0, Math.min(1, x));
+                        
+                        return this.interpolateColor(color1, color2, ratio);
+                    }
+                    else if(gradientType === 'radial') {
+                        const color1 = this.settings.gradientColor1 || baseColor;
+                        const color2 = this.settings.gradientColor2 || '#FF6B6B';
+                        
+                        const centerDistance = Math.sqrt(
+                            Math.pow(normalizedRow - 0.5, 2) + 
+                            Math.pow(normalizedCol - 0.5, 2)
+                        ) * 1.4;
+                        
+                        return this.interpolateColor(color1, color2, Math.min(centerDistance, 1));
+                    }
+                    
+                    return baseColor;
+                } catch(error) {
+                    return baseColor;
+                }
+            }
+
+            interpolateColor(color1, color2, ratio) {
+                try {
+                    if(!color1.startsWith('#') || !color2.startsWith('#')) return color1;
+                    
+                    const hex1 = color1.replace('#', '');
+                    const hex2 = color2.replace('#', '');
+                    
+                    const r1 = parseInt(hex1.substr(0, 2), 16);
+                    const g1 = parseInt(hex1.substr(2, 2), 16);
+                    const b1 = parseInt(hex1.substr(4, 2), 16);
+                    
+                    const r2 = parseInt(hex2.substr(0, 2), 16);
+                    const g2 = parseInt(hex2.substr(2, 2), 16);
+                    const b2 = parseInt(hex2.substr(4, 2), 16);
+                    
+                    const r = Math.round(r1 + (r2 - r1) * ratio);
+                    const g = Math.round(g1 + (g2 - g1) * ratio);
+                    const b = Math.round(b1 + (b2 - b1) * ratio);
+                    
+                    return `rgb(${r}, ${g}, ${b})`;
+                } catch(error) {
+                    return color1;
+                }
+            }
+
+            renderDot(x, y, size, style, color, row, col) {
+                try {
+                    this.ctx.fillStyle = color;
+                    this.ctx.strokeStyle = color;
+                    
+                    if (size < 3) {
+                        this.ctx.fillRect(x, y, size, size);
+                        return;
+                    }
+                    
+                    switch(style) {
+                        case 'square':
+                            this.ctx.fillRect(x, y, size, size);
+                            break;
+                            
+                        case 'circle':
+                            this.ctx.beginPath();
+                            this.ctx.arc(x + size/2, y + size/2, size/2 * 0.85, 0, 2 * Math.PI);
+                            this.ctx.fill();
+                            break;
+                            
+                        case 'mixed-dots':
+                            const isSmall = (row + col) % 2 === 0;
+                            const radius = isSmall ? size/2 * 0.6 : size/2 * 0.3;
+                            this.ctx.beginPath();
+                            this.ctx.arc(x + size/2, y + size/2, radius, 0, 2 * Math.PI);
+                            this.ctx.fill();
+                            break;
+                            
+                        case 'square-dots':
+                            const dotSize = size * 0.6;
+                            const offset = (size - dotSize) / 2;
+                            this.ctx.fillRect(x + offset, y + offset, dotSize, dotSize);
+                            break;
+                            
+                        case 'diamond':
+                            if (size < 6) {
+                                this.ctx.save();
+                                this.ctx.translate(x + size/2, y + size/2);
+                                this.ctx.rotate(Math.PI / 4);
+                                this.ctx.fillRect(-size/2 * 0.7, -size/2 * 0.7, size * 0.7, size * 0.7);
+                                this.ctx.restore();
+                            } else {
+                                this.ctx.beginPath();
+                                this.ctx.moveTo(x + size/2, y - size * 0.1);
+                                this.ctx.lineTo(x + size * 1.1, y + size/2);
+                                this.ctx.lineTo(x + size/2, y + size * 1.1);
+                                this.ctx.lineTo(x - size * 0.1, y + size/2);
+                                this.ctx.closePath();
+                                this.ctx.fill();
+                            }
+                            break;
+                            
+                        case 'line':
+                            this.ctx.fillRect(x + size * 0.1, y + size * 0.3, size * 0.8, size * 0.4);
+                            break;
+
+                        case 'mixed':
+                            if ((row + col) % 3 === 0) {
+                                this.ctx.beginPath();
+                                this.ctx.arc(x + size/2, y + size/2, size/2 * 0.8, 0, 2 * Math.PI);
+                                this.ctx.fill();
+                            } else {
+                                this.ctx.fillRect(x + size * 0.1, y + size * 0.1, size * 0.8, size * 0.8);
+                            }
+                            break;
+                            
+                        default:
+                            this.ctx.fillRect(x, y, size, size);
+                            break;
+                    }
+                } catch(error) {
+                    debugLog('Dot rendering error: ' + error.message, 'warning');
+                    this.ctx.fillRect(x, y, size, size);
+                }
+            }
+
+            renderCorner(x, y, size, style, color) {
+                try {
+                    const outerSize = size;
+                    
+                    this.ctx.fillStyle = color;
+                    this.ctx.strokeStyle = color;
+                    
+                    switch(style) {
+                        case 'square':
+                            this.ctx.fillStyle = this.interpolateColor(color, '#4285f4', 0.3);
+                            this.ctx.fillRect(x, y, outerSize, outerSize);
+                            
+                            this.ctx.fillStyle = this.settings.backgroundColor;
+                            this.ctx.fillRect(x + outerSize/7, y + outerSize/7, outerSize * 5/7, outerSize * 5/7);
+                            
+                            this.ctx.fillStyle = color;
+                            this.ctx.beginPath();
+                            this.ctx.arc(x + outerSize/2, y + outerSize/2, outerSize * 1.5/7, 0, 2 * Math.PI);
+                            this.ctx.fill();
+                            break;
+                            
+                        case 'circle':
+                            this.ctx.fillStyle = this.interpolateColor(color, '#4285f4', 0.3);
+                            this.ctx.beginPath();
+                            this.ctx.arc(x + outerSize/2, y + outerSize/2, outerSize/2, 0, 2 * Math.PI);
+                            this.ctx.fill();
+                            
+                            this.ctx.fillStyle = this.settings.backgroundColor;
+                            this.ctx.beginPath();
+                            this.ctx.arc(x + outerSize/2, y + outerSize/2, outerSize * 2.5/7, 0, 2 * Math.PI);
+                            this.ctx.fill();
+                            
+                            this.ctx.fillStyle = color;
+                            this.ctx.beginPath();
+                            this.ctx.arc(x + outerSize/2, y + outerSize/2, outerSize * 1.5/7, 0, 2 * Math.PI);
+                            this.ctx.fill();
+                            break;
+                            
+                        default:
+                            this.renderCorner(x, y, size, 'square', color);
+                            break;
+                    }
+                } catch(error) {
+                    debugLog('Corner rendering error: ' + error.message, 'warning');
+                    this.ctx.fillStyle = color;
+                    this.ctx.fillRect(x, y, size, size);
+                }
+            }
+
+            embedLogo(logo, logoSize) {
+                if(!logo) return;
+                
+                try {
+                    const size = this.settings.size;
+                    const logoPixelSize = (size * logoSize) / 100;
+                    const logoX = (size - logoPixelSize) / 2;
+                    const logoY = (size - logoPixelSize) / 2;
+                    
+                    this.ctx.fillStyle = this.settings.backgroundColor;
+                    this.ctx.beginPath();
+                    this.ctx.arc(logoX + logoPixelSize/2, logoY + logoPixelSize/2, logoPixelSize/2 + 6, 0, 2 * Math.PI);
+                    this.ctx.fill();
+                    
+                    this.ctx.save();
+                    this.ctx.beginPath();
+                    this.ctx.arc(logoX + logoPixelSize/2, logoY + logoPixelSize/2, logoPixelSize/2, 0, 2 * Math.PI);
+                    this.ctx.clip();
+                    
+                    this.ctx.drawImage(logo, logoX, logoY, logoPixelSize, logoPixelSize);
+                    this.ctx.restore();
+                    
+                    debugLog('Logo embedded successfully', 'success');
+                    
+                } catch(error) {
+                    debugLog('Logo embedding error: ' + error.message, 'warning');
+                }
+            }
+
+            renderPillsPattern(matrix, moduleSize, size) {
+                const processedModules = new Set();
+                const moduleCount = this.moduleCount;
+                
+                debugLog('Starting pills pattern rendering...', 'info');
+                
+                let pillsRendered = 0;
+                
+                // Process modules from top-left to bottom-right
+                for(let row = 0; row < moduleCount; row++) {
+                    for(let col = 0; col < moduleCount; col++) {
+                        const moduleKey = `${row}-${col}`;
+                        
+                        if(matrix[row][col] && !processedModules.has(moduleKey) && !this.isCornerSquare(row, col, moduleCount)) {
+                            const shape = this.determineShape(matrix, row, col, moduleCount, processedModules);
+                            this.renderShape(shape, row, col, moduleSize, processedModules);
+                            pillsRendered++;
+                        }
+                    }
+                }
+                
+                debugLog(`Pills pattern completed: ${pillsRendered} shapes rendered`, 'success');
+            }
+
+            determineShape(matrix, row, col, moduleCount, processedModules) {
+                // Check vertical continuity (prefer vertical pills)
+                let verticalCount = 1;
+                for(let i = row + 1; i < moduleCount && i < row + 5; i++) { // Limit check to 5 modules
+                    if(!matrix[i] || !matrix[i][col] || processedModules.has(`${i}-${col}`) || this.isCornerSquare(i, col, moduleCount)) {
+                        break;
+                    }
+                    verticalCount++;
+                }
+                
+                // Check horizontal continuity
+                let horizontalCount = 1;
+                for(let j = col + 1; j < moduleCount && j < col + 4; j++) { // Limit check to 4 modules
+                    if(!matrix[row] || !matrix[row][j] || processedModules.has(`${row}-${j}`) || this.isCornerSquare(row, j, moduleCount)) {
+                        break;
+                    }
+                    horizontalCount++;
+                }
+                
+                // Decision logic: prefer longer shapes
+                if(verticalCount >= 3 && verticalCount > horizontalCount) {
+                    return {type: 'vertical-pill', length: Math.min(verticalCount, 4), row, col};
+                } else if(horizontalCount >= 2 && horizontalCount >= verticalCount) {
+                    return {type: 'horizontal-pill', length: Math.min(horizontalCount, 3), row, col};
+                } else {
+                    return {type: 'circle', row, col};
+                }
+            }
+
+            renderShape(shape, row, col, moduleSize, processedModules) {
+                const x = col * moduleSize;
+                const y = row * moduleSize;
+                const spacing = 0.1 * moduleSize;
+                
+                // Use gradient colors for pills
+                const color1 = this.settings.gradientColor1 || this.settings.foregroundColor;
+                const color2 = this.settings.gradientColor2 || '#4ECDC4';
+                
+                switch(shape.type) {
+                    case 'circle':
+                        const radius = moduleSize * 0.4;
+                        this.ctx.fillStyle = color1;
+                        this.ctx.beginPath();
+                        this.ctx.arc(x + moduleSize/2, y + moduleSize/2, radius, 0, 2 * Math.PI);
+                        this.ctx.fill();
+                        processedModules.add(`${row}-${col}`);
+                        break;
+                        
+                    case 'vertical-pill':
+                        const pillWidth = moduleSize * 0.8;
+                        const pillHeight = (shape.length * moduleSize) - spacing;
+                        const pillX = x + (moduleSize - pillWidth) / 2;
+                        const pillY = y + spacing/2;
+                        
+                        // Create vertical gradient
+                        const vGradient = this.ctx.createLinearGradient(pillX, pillY, pillX, pillY + pillHeight);
+                        vGradient.addColorStop(0, color1);
+                        vGradient.addColorStop(1, color2);
+                        this.ctx.fillStyle = vGradient;
+                        
+                        // Draw rounded rectangle manually
+                        const capRadius = pillWidth / 2;
+                        this.ctx.beginPath();
+                        this.ctx.arc(pillX + capRadius, pillY + capRadius, capRadius, Math.PI, 0, false);
+                        this.ctx.lineTo(pillX + pillWidth, pillY + pillHeight - capRadius);
+                        this.ctx.arc(pillX + capRadius, pillY + pillHeight - capRadius, capRadius, 0, Math.PI, false);
+                        this.ctx.lineTo(pillX, pillY + capRadius);
+                        this.ctx.closePath();
+                        this.ctx.fill();
+                        
+                        for(let i = 0; i < shape.length; i++) {
+                            processedModules.add(`${row + i}-${col}`);
+                        }
+                        break;
+                        
+                    case 'horizontal-pill':
+                        const hPillHeight = moduleSize * 0.8;
+                        const hPillWidth = (shape.length * moduleSize) - spacing;
+                        const hPillX = x + spacing/2;
+                        const hPillY = y + (moduleSize - hPillHeight) / 2;
+                        
+                        // Create horizontal gradient
+                        const hGradient = this.ctx.createLinearGradient(hPillX, hPillY, hPillX + hPillWidth, hPillY);
+                        hGradient.addColorStop(0, color1);
+                        hGradient.addColorStop(1, color2);
+                        this.ctx.fillStyle = hGradient;
+                        
+                        const hCapRadius = hPillHeight / 2;
+                        this.ctx.beginPath();
+                        this.ctx.arc(hPillX + hCapRadius, hPillY + hCapRadius, hCapRadius, Math.PI/2, -Math.PI/2, false);
+                        this.ctx.lineTo(hPillX + hPillWidth - hCapRadius, hPillY);
+                        this.ctx.arc(hPillX + hPillWidth - hCapRadius, hPillY + hCapRadius, hCapRadius, -Math.PI/2, Math.PI/2, false);
+                        this.ctx.lineTo(hPillX + hCapRadius, hPillY + hPillHeight);
+                        this.ctx.closePath();
+                        this.ctx.fill();
+                        
+                        for(let j = 0; j < shape.length; j++) {
+                            processedModules.add(`${row}-${col + j}`);
+                        }
+                        break;
+                }
+            }
+
+            renderCornerSquares(matrix, moduleSize) {
+                const moduleCount = this.moduleCount;
+                const cornerPositions = [
+                    { startRow: 0, startCol: 0 }, // Top-left
+                    { startRow: 0, startCol: moduleCount - 7 }, // Top-right  
+                    { startRow: moduleCount - 7, startCol: 0 }  // Bottom-left
+                ];
+                
+                cornerPositions.forEach(pos => {
+                    const x = pos.startCol * moduleSize;
+                    const y = pos.startRow * moduleSize;
+                    this.renderCorner(x, y, moduleSize * 7, this.settings.cornerStyle, this.settings.foregroundColor);
+                });
+            }
+
+            async render(text) {
+                if (!this.isLibraryWorking) {
+                    debugLog('Cannot render: library not initialized', 'error');
+                    return false;
+                }
+
+                debugLog('Starting Unicode QR render process...', 'info');
+                
+                // Analyze data before rendering
+                const analysis = this.analyzeData(text);
+                this.showDataAnalysis(analysis);
+                
+                // For very large data, force simple patterns
+                if (analysis.warningLevel === 'critical' && !['square', 'circle'].includes(this.settings.dotStyle)) {
+                    debugLog('Forcing simple pattern for large data', 'warning');
+                    this.settings.dotStyle = 'square';
+                }
+                
+                // Use appropriate renderer
+                if (this.settings.dotStyle === 'rounded' && analysis.estimatedModules < 60) {
+                    return await this.renderRoundedPattern(text);
+                } else if (this.settings.dotStyle === 'rounded' && analysis.estimatedModules >= 60) {
+                    debugLog('Data too large for rounded pattern, falling back to square', 'warning');
+                    this.settings.dotStyle = 'square';
+                    
+                    document.querySelectorAll('.style-option').forEach(o => o.classList.remove('active'));
+                    document.querySelector('[data-style="square"]').classList.add('active');
+                    
+                    return this.renderBasicPattern(text);
+                } else {
+                    return this.renderBasicPattern(text);
+                }
+            }
+
+            updateSettings(newSettings) {
+                this.settings = { ...this.settings, ...newSettings };
+                debugLog('Settings updated: ' + Object.keys(newSettings).join(', '), 'info');
+            }
+        }
+
+        let renderer;
+        
+        function initializeSystem() {
+            debugLog('Page loaded, initializing Unicode QR system...', 'info');
+            
+            const canvas = document.getElementById('qrCanvas');
+            if (!canvas) {
+                debugLog('Canvas element not found!', 'error');
+                return;
+            }
+            
+            renderer = new UnicodeQRRenderer(canvas);
+            
+            if (!renderer.initialize()) {
+                debugLog('System initialization failed!', 'error');
+                setTimeout(() => {
+                    if (renderer.initialize()) {
+                        debugLog('Fallback initialization successful!', 'success');
+                        setupEventListeners();
+                        setTimeout(generateQR, 100);
+                    }
+                }, 1000);
+                return;
+            }
+            
+            setupEventListeners();
+            
+            debugLog('Unicode QR system ready!', 'success');
+            setTimeout(generateQR, 100);
+        }
+
+        function setupEventListeners() {
+            debugLog('Setting up event listeners...', 'info');
+            
+            // Style option listeners
+            document.querySelectorAll('.style-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    const selectedPattern = this.dataset.style;
+                    
+                    document.querySelectorAll('.style-option').forEach(o => o.classList.remove('active'));
+                    this.classList.add('active');
+                    renderer.updateSettings({ dotStyle: selectedPattern });
+                    
+                    const roundedOptions = document.getElementById('roundedOptions');
+                    if (selectedPattern === 'rounded') {
+                        roundedOptions.classList.add('show');
+                    } else {
+                        roundedOptions.classList.remove('show');
+                    }
+                    
+                    generateQR();
+                });
+            });
+
+            // Rounded pattern controls
+            document.getElementById('dotsType').addEventListener('change', function() {
+                renderer.updateSettings({ dotsType: this.value });
+                generateQR();
+            });
+
+            document.getElementById('cornersType').addEventListener('change', function() {
+                renderer.updateSettings({ cornersType: this.value });
+                generateQR();
+            });
+
+            document.getElementById('cornersDotType').addEventListener('change', function() {
+                renderer.updateSettings({ cornersDotType: this.value });
+                generateQR();
+            });
+
+            // Corner style listeners
+            document.querySelectorAll('.corner-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    document.querySelectorAll('.corner-option').forEach(o => o.classList.remove('active'));
+                    this.classList.add('active');
+                    renderer.updateSettings({ cornerStyle: this.dataset.corner });
+                    generateQR();
+                });
+            });
+
+            // Color controls
+            document.getElementById('foregroundColor').addEventListener('change', function() {
+                renderer.updateSettings({ foregroundColor: this.value });
+                generateQR();
+            });
+
+            document.getElementById('backgroundColor').addEventListener('change', function() {
+                renderer.updateSettings({ backgroundColor: this.value });
+                generateQR();
+            });
+
+            document.getElementById('gradientType').addEventListener('change', function() {
+                renderer.updateSettings({ gradientType: this.value });
+                
+                const gradientControls = document.getElementById('gradientControls');
+                if (this.value !== 'none') {
+                    gradientControls.style.display = 'block';
+                    updateGradientPreview();
+                } else {
+                    gradientControls.style.display = 'none';
+                }
+                
+                generateQR();
+            });
+
+            // Custom gradient controls
+            document.getElementById('gradientColor1').addEventListener('change', function() {
+                renderer.updateSettings({ gradientColor1: this.value });
+                updateGradientPreview();
+                generateQR();
+            });
+
+            document.getElementById('gradientColor2').addEventListener('change', function() {
+                renderer.updateSettings({ gradientColor2: this.value });
+                updateGradientPreview();
+                generateQR();
+            });
+
+            document.getElementById('gradientAngle').addEventListener('input', function() {
+                const angle = parseInt(this.value);
+                renderer.updateSettings({ gradientAngle: angle });
+                document.getElementById('angleValue').textContent = angle + '°';
+                updateGradientPreview();
+                generateQR();
+            });
+
+            document.getElementById('qrSize').addEventListener('input', function() {
+                const size = parseInt(this.value);
+                document.getElementById('sizeValue').textContent = size + 'px';
+                renderer.updateSettings({ size: size });
+                generateQR();
+            });
+
+            document.getElementById('errorLevel').addEventListener('change', function() {
+                renderer.updateSettings({ errorLevel: this.value });
+                generateQR();
+            });
+
+            document.getElementById('logoInput').addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if(file && file.type.startsWith('image/')) {
+                    // Check file size (max 5MB)
+                    if (file.size > 5 * 1024 * 1024) {
+                        alert('Logo file too large! Please use a file smaller than 5MB.');
+                        return;
+                    }
+                    
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        const img = new Image();
+                        img.onload = function() {
+                            // Store image
+                            renderer.updateSettings({ logo: img });
+                            
+                            // Update UI
+                            document.getElementById('logoImage').src = event.target.result;
+                            document.getElementById('logoImage').style.display = 'block';
+                            document.getElementById('logoText').style.display = 'none';
+                            document.getElementById('logoControls').style.display = 'grid';
+                            
+                            // Show logo info
+                            const logoInfo = document.getElementById('logoInfo');
+                            const logoDetails = document.getElementById('logoDetails');
+                            logoInfo.style.display = 'block';
+                            logoDetails.innerHTML = `📁 ${file.name}<br>📏 ${img.width}×${img.height}px<br>💾 ${(file.size/1024).toFixed(1)}KB`;
+                            
+                            generateQR();
+                        };
+                        img.src = event.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            document.getElementById('logoSize').addEventListener('input', function() {
+                const size = parseInt(this.value);
+                document.getElementById('logoSizeValue').textContent = size + '%';
+                renderer.updateSettings({ logoSize: size });
+                generateQR();
+            });
+
+            document.getElementById('logoQuality').addEventListener('change', function() {
+                renderer.updateSettings({ logoQuality: this.value });
+                generateQR();
+            });
+
+            document.getElementById('customText').addEventListener('input', function() {
+                renderer.updateSettings({ customText: this.value });
+                generateQR();
+            });
+
+            document.getElementById('qrText').addEventListener('input', function() {
+                clearTimeout(window.qrTextTimeout);
+                window.qrTextTimeout = setTimeout(() => {
+                    generateQR();
+                }, 300);
+            });
+            
+            debugLog('Event listeners setup complete', 'success');
+        }
+
+        async function generateQR() {
+            try {
+                const textInput = document.getElementById('qrText');
+                const text = textInput.value.trim();
+                
+                if(!text) {
+                    debugLog('No text provided, using default', 'warning');
+                    textInput.value = 'https://example.com';
+                    return generateQR();
+                }
+                
+                if(!renderer) {
+                    debugLog('Renderer not initialized yet', 'error');
+                    return;
+                }
+                
+                debugLog(`Generating QR for: "${text}"`, 'info');
+                const success = await renderer.render(text);
+                
+                if(!success) {
+                    debugLog('QR generation failed!', 'error');
+                    showFallbackPattern();
+                }
+            } catch(error) {
+                debugLog('Generate QR error: ' + error.message, 'error');
+                showFallbackPattern();
+            }
+        }
+
+        function updateGradientPreview() {
+            const color1 = document.getElementById('gradientColor1').value;
+            const color2 = document.getElementById('gradientColor2').value;
+            const angle = parseInt(document.getElementById('gradientAngle').value);
+            const gradientType = document.getElementById('gradientType').value;
+            
+            const preview = document.getElementById('gradientPreview');
+            
+            if (gradientType === 'linear') {
+                preview.style.background = `linear-gradient(${angle}deg, ${color1}, ${color2})`;
+            } else if (gradientType === 'radial') {
+                preview.style.background = `radial-gradient(circle, ${color1}, ${color2})`;
+            }
+        }
+
+        function removeLogo() {
+            renderer.updateSettings({ logo: null, logoOriginal: null });
+            
+            // Reset UI
+            document.getElementById('logoImage').style.display = 'none';
+            document.getElementById('logoText').style.display = 'block';
+            document.getElementById('logoControls').style.display = 'none';
+            document.getElementById('logoInfo').style.display = 'none';
+            document.getElementById('logoInput').value = '';
+            
+            generateQR();
+            debugLog('Logo removed successfully', 'info');
+        }
+
+        function testHindiEncoding() {
+            const hindiText = '3.6 मिलियन (2023): GetLatka के अनुसार, QR TIGER ने 2023 में $3.6 मिलियन का राजस्व अर्जित किया।';
+            document.getElementById('qrText').value = hindiText;
+            generateQR();
+            debugLog('Testing Hindi encoding with sample text', 'info');
+        }
+
+        function showFallbackPattern() {
+            try {
+                const canvas = document.getElementById('qrCanvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = 400;
+                canvas.height = 400;
+                
+                ctx.fillStyle = '#f0f0f0';
+                ctx.fillRect(0, 0, 400, 400);
+                
+                ctx.fillStyle = '#000000';
+                ctx.font = '16px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('QR Generation Error', 200, 190);
+                ctx.fillText('Check Debug Console', 200, 210);
+                
+                debugLog('Emergency fallback pattern displayed', 'info');
+            } catch(e) {
+                debugLog('Emergency fallback also failed: ' + e.message, 'error');
+            }
+        }
+
+        function downloadQR() {
+            try {
+                const canvas = document.getElementById('qrCanvas');
+                const link = document.createElement('a');
+                link.download = 'unicode-qr-code.png';
+                link.href = canvas.toDataURL('image/png', 1.0);
+                link.click();
+                debugLog('Unicode QR code downloaded successfully', 'success');
+            } catch(error) {
+                debugLog('Download failed: ' + error.message, 'error');
+            }
+        }
+
+        function debugMode() {
+            const debugDiv = document.getElementById('debugInfo');
+            if (debugDiv.style.maxHeight === 'none') {
+                debugDiv.style.maxHeight = '200px';
+                debugLog('Debug mode: compact view', 'info');
+            } else {
+                debugDiv.style.maxHeight = 'none';
+                debugLog('Debug mode: expanded view', 'info');
+            }
+        }
+
+        // Initialize when page loads
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeSystem);
+        } else {
+            initializeSystem();
+        }
+    </script>
+</body>
+</html>
