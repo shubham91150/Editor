@@ -1654,34 +1654,38 @@
                 debugLog(`Pills pattern completed: ${pillsRendered} shapes rendered`, 'success');
             }
 
-            determineShape(matrix, row, col, moduleCount, processedModules) {
-                // Check vertical continuity (prefer vertical pills)
-                let verticalCount = 1;
-                for(let i = row + 1; i < moduleCount && i < row + 5; i++) { // Limit check to 5 modules
-                    if(!matrix[i] || !matrix[i][col] || processedModules.has(`${i}-${col}`) || this.isCornerSquare(i, col, moduleCount)) {
-                        break;
-                    }
-                    verticalCount++;
-                }
-                
-                // Check horizontal continuity
-                let horizontalCount = 1;
-                for(let j = col + 1; j < moduleCount && j < col + 4; j++) { // Limit check to 4 modules
-                    if(!matrix[row] || !matrix[row][j] || processedModules.has(`${row}-${j}`) || this.isCornerSquare(row, j, moduleCount)) {
-                        break;
-                    }
-                    horizontalCount++;
-                }
-                
-                // Decision logic: prefer longer shapes
-                if(verticalCount >= 3 && verticalCount > horizontalCount) {
-                    return {type: 'vertical-pill', length: Math.min(verticalCount, 4), row, col};
-                } else if(horizontalCount >= 2 && horizontalCount >= verticalCount) {
-                    return {type: 'horizontal-pill', length: Math.min(horizontalCount, 3), row, col};
-                } else {
-                    return {type: 'circle', row, col};
-                }
-            }
+                        determineShape(matrix, row, col, moduleCount, processedModules) {
+                // Check vertical continuity (prefer vertical pills)
+                let verticalCount = 1;
+                for(let i = row + 1; i < moduleCount && i < row + 6; i++) { // Extended check to 6 modules
+                    if(!matrix[i] || !matrix[i][col] || processedModules.has(`${i}-${col}`) || this.isCornerSquare(i, col, moduleCount)) {
+                        break;
+                    }
+                    verticalCount++;
+                }
+                
+                // Check horizontal continuity
+                let horizontalCount = 1;
+                for(let j = col + 1; j < moduleCount && j < col + 5; j++) { // Extended check to 5 modules
+                    if(!matrix[row] || !matrix[row][j] || processedModules.has(`${row}-${j}`) || this.isCornerSquare(row, j, moduleCount)) {
+                        break;
+                    }
+                    horizontalCount++;
+                }
+                
+                // Improved decision logic: better pill formation like image (1)
+                if(verticalCount >= 4 && verticalCount > horizontalCount + 1) {
+                    return {type: 'vertical-pill', length: Math.min(verticalCount, 5), row, col};
+                } else if(horizontalCount >= 3 && horizontalCount >= verticalCount) {
+                    return {type: 'horizontal-pill', length: Math.min(horizontalCount, 4), row, col};
+                } else if(verticalCount >= 2 && verticalCount > horizontalCount) {
+                    return {type: 'vertical-pill', length: Math.min(verticalCount, 3), row, col};
+                } else if(horizontalCount >= 2) {
+                    return {type: 'horizontal-pill', length: Math.min(horizontalCount, 3), row, col};
+                } else {
+                    return {type: 'pill-circle', row, col};
+                }
+            }
 
             renderShape(shape, row, col, moduleSize, processedModules) {
                 const x = col * moduleSize;
